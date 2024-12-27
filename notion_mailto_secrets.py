@@ -61,15 +61,11 @@ def process_emails():
             print(f"Rollup array for item {item_id}: {rollup_array}")
             for item in rollup_array:
                 print(f"  Rollup item: {item}")
-                if item.get("type") == "rich_text":
-                    rich_text_content = item.get("rich_text", [])
-                    for text_item in rich_text_content:
-                        if text_item.get("type") == "text":
-                            email = text_item.get("plain_text", "")
-                            if "@" in email:
-                                email_list.append(email)
-                elif item.get("type") == "email":
-                    email_list.append(item.get("email", ""))
+                if item.get("type") == "email":
+                    email = item.get("email", "")
+                    if email:  # Add a check to ensure the email is not empty
+                        email_list.append(email)
+                # else: # you can add other conditions here if needed
 
         print(f"Extracted emails for item {item_id}: {email_list}")
 
