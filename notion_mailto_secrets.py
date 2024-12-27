@@ -58,14 +58,13 @@ def process_emails():
         email_list = []
         if rollup_property.get("type") == "rollup":
             rollup_array = rollup_property.get("rollup", {}).get("array", [])
-            print(f"Rollup array for item {item_id}: {rollup_array}")
+            print(f"Rollup array for item {item_id}: {rollup_array}") # Added: Inspect the array
             for item in rollup_array:
-                print(f"  Rollup item: {item}")
+                print(f"  Rollup item: {item}") # Added: Inspect each item in the array
                 if item.get("type") == "email":
                     email = item.get("email", "")
                     if email:  # Add a check to ensure the email is not empty
                         email_list.append(email)
-                # else: # you can add other conditions here if needed
 
         print(f"Extracted emails for item {item_id}: {email_list}")
 
@@ -81,7 +80,7 @@ def process_emails():
             update_database_item(item_id, mailto_link)
         else:
             print(f"Skipping item {item_id} due to missing emails or subject.")
-
+            
 if __name__ == "__main__":
     try:
         process_emails()
