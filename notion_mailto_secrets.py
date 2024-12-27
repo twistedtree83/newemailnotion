@@ -49,31 +49,35 @@ def process_emails():
         properties = result.get("properties", {})
 
         # Debug: Print all properties for the item
-        print(f"Properties for item {result['id']}: {properties}")
+        # print(f"Properties for item {result['id']}: {properties}")
 
         # Extract the Emails field (rollup property)
         rollup_property = properties.get("Emails", {})
 
         # Debug: Print raw rollup data
-        print(f"Raw rollup data for item {result['id']}: {rollup_property}")
+        # print(f"Raw rollup data for item {result['id']}: {rollup_property}")
 
         # Handle rollup array type to extract emails
         email_list = []
         if rollup_property.get("type") == "rollup":
-            rollup_data = rollup_property.get("rollup", {})
-            if rollup_data.get("type") == "array":
-                email_list = [
-                    item.get("email", "") 
-                    for item in rollup_data.get("array", [])
-                    if item.get("type") == "email"
-                ]
+            rollup_array = rollup_property.get("rollup", {}).get("array", [])
+            for item in rollup_array:
+                if item.get("type") == "rich_text":
+                    rich_text_content = item.get("rich_text", [])
+                    for text_item in rich_text_content:
+                        if text_item.get("type") == "text":
+                            email = text_item.get("plain_text", "")
+                            if "@" in email:  # Basic check to see if it's an email
+                                email_list.append(email)
+                elif item.get("type") == "email":
+                    email_list.append(item.get("email", ""))
 
         # Debug: Print extracted email list
         print(f"Extracted emails for item {result['id']}: {email_list}")
 
         # Extract the Email Subject Line field
         subject_raw = properties.get("Email Subject Line", {}).get("rich_text", [])
-        subject = "".join([s.get("text", {}).get("content", "") for s in subject_raw])
+        subject = "".join([s.get("plain_text", "") for s in subject_raw])
 
         # Debug: Print the extracted subject line
         print(f"Subject for item {result['id']}: {subject}")
