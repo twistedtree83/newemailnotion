@@ -36,7 +36,12 @@ def update_database_item(item_id, mailto_link):
     data = {
         "properties": {
             "Email Link": {  # Ensure this matches the "Email Link" property in Notion
-                "url": mailto_link
+                "rich_text": [{
+                    "type": "text",
+                    "text": {
+                        "content": mailto_link
+                    }
+                }]
             }
         }
     }
@@ -52,16 +57,25 @@ def process_emails():
     for result in data.get("results", []):
         properties = result.get("properties", {})
 
-        # Debug: Print all properties of the current item
-        print(f"Properties for item {result['id']}: {properties}")
+        # Debug: Print all properties to verify field names and types
+        print(f"All properties for item {result['id']}: {properties}")
 
-        # Fetch email addresses from the "Emails" field
-        emails = properties.get("Emails", {}).get("rich_text", [])
-        email_list = [email["text"]["content"] for email in emails]
+        # Fetch the rollup property for emails
+        rollup_property = properties.get("Emails", {})
 
-        # Fetch subject line from the "Email Subject Line" field
-        subject = properties.get("Email Subject Line", {}).get("title", [])
-        subject_text = "".join([s["text"]["content"] for s in subject])
+        # Debug: Print the rollup property's content to understand its structure
+        print(f"Rollup property content for item {result['id']}: {rollup_property}")
+
+        # Extract email addresses based on the rollup's structure
+        email_list = []
+        rollup_results = rollup_property.get("rollup", {}).get("array", [])
+        for item in rollup_results:
+            if item.get("type") == "text":
+                email_list.append(item.get("text", {}).get("content", ""))
+
+        # Fetch subject line from "Email Subject Line"
+        subject = properties.get("Email Subject Line", {}).get("rich_text", [])
+        subject_text = "".join([s.get("text", {}).get("content", "") for s in subject])
 
         # Debugging: Print fetched values
         print(f"Processing item {result['id']}")
