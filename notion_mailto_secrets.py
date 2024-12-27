@@ -57,15 +57,16 @@ def process_emails():
         # Debug: Print raw rollup data
         print(f"Raw rollup data for item {result['id']}: {rollup_property}")
 
-        # Handle rollup array type
+        # Handle rollup array type to extract emails
         email_list = []
-        if rollup_property.get("type") == "array":
-            email_array = rollup_property.get("array", [])
-            email_list = [
-                item.get("text", {}).get("content", "") 
-                for item in email_array 
-                if item.get("type") == "text"
-            ]
+        if rollup_property.get("type") == "rollup":
+            rollup_data = rollup_property.get("rollup", {})
+            if rollup_data.get("type") == "array":
+                email_list = [
+                    item.get("email", "") 
+                    for item in rollup_data.get("array", [])
+                    if item.get("type") == "email"
+                ]
 
         # Debug: Print extracted email list
         print(f"Extracted emails for item {result['id']}: {email_list}")
