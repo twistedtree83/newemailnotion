@@ -2,7 +2,7 @@ import os
 import requests
 import urllib.parse
 
-# Fetch secrets from environment variables
+# Fetch secrets from environment variables (expected to be set in GitHub Actions)
 NOTION_API_KEY = os.getenv("NOTION_API_KEY")
 DATABASE_ID = os.getenv("DATABASE_ID")
 
@@ -43,58 +43,48 @@ def process_emails():
     """
     Processes the emails and subject from the Notion database,
     generates mailto links, and updates the database.
+    Includes detailed debugging print statements.
     """
     data = get_database_items()
     for result in data.get("results", []):
+        item_id = result["id"]
         properties = result.get("properties", {})
 
-        # Debug: Print all properties for the item
-        # print(f"Properties for item {result['id']}: {properties}")
+        print(f"Processing item with ID: {item_id}")
 
-        # Extract the Emails field (rollup property)
         rollup_property = properties.get("Emails", {})
+        print(f"Raw rollup data for item {item_id}: {rollup_property}")
 
-        # Debug: Print raw rollup data
-        # print(f"Raw rollup data for item {result['id']}: {rollup_property}")
-
-        # Handle rollup array type to extract emails
         email_list = []
         if rollup_property.get("type") == "rollup":
             rollup_array = rollup_property.get("rollup", {}).get("array", [])
+            print(f"Rollup array for item {item_id}: {rollup_array}")
             for item in rollup_array:
+                print(f"  Rollup item: {item}")
                 if item.get("type") == "rich_text":
                     rich_text_content = item.get("rich_text", [])
                     for text_item in rich_text_content:
                         if text_item.get("type") == "text":
                             email = text_item.get("plain_text", "")
-                            if "@" in email:  # Basic check to see if it's an email
+                            if "@" in email:
                                 email_list.append(email)
                 elif item.get("type") == "email":
                     email_list.append(item.get("email", ""))
 
-        # Debug: Print extracted email list
-        print(f"Extracted emails for item {result['id']}: {email_list}")
+        print(f"Extracted emails for item {item_id}: {email_list}")
 
-        # Extract the Email Subject Line field
         subject_raw = properties.get("Email Subject Line", {}).get("rich_text", [])
         subject = "".join([s.get("plain_text", "") for s in subject_raw])
+        print(f"Subject for item {item_id}: {subject}")
 
-        # Debug: Print the extracted subject line
-        print(f"Subject for item {result['id']}: {subject}")
-
-        # Generate the mailto link
         if email_list and subject:
             email_string = ",".join(email_list)
             encoded_subject = urllib.parse.quote(subject)
             mailto_link = f"mailto:{email_string}?subject={encoded_subject}"
-
-            # Debug: Print generated mailto link
-            print(f"Generated mailto link for {result['id']}: {mailto_link}")
-
-            # Update the database with the generated mailto link
-            update_database_item(result["id"], mailto_link)
+            print(f"Generated mailto link for {item_id}: {mailto_link}")
+            update_database_item(item_id, mailto_link)
         else:
-            print(f"Skipping item {result['id']} due to missing emails or subject.")
+            print(f"Skipping item {item_id} due to missing emails or subject.")
 
 if __name__ == "__main__":
     try:
