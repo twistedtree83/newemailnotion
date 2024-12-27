@@ -17,11 +17,7 @@ def get_database_items():
     }
     response = requests.post(url, headers=headers)
     response.raise_for_status()
-
-    # Debugging: Print the fetched data
-    data = response.json()
-    print(f"Fetched data: {data}")
-    return data
+    return response.json()
 
 def update_database_item(item_id, mailto_link):
     """
@@ -52,40 +48,36 @@ def process_emails():
     for result in data.get("results", []):
         properties = result.get("properties", {})
 
-        # Debug: Print all properties to verify field names and types
-        print(f"All properties for item {result['id']}: {properties}")
+        # Debug: Print all properties for the item
+        print(f"Properties for item {result['id']}: {properties}")
 
-        # Fetch the rollup property for emails
-        rollup_property = properties.get("Emails", {})
-
-        # Debug: Print the rollup property's content to understand its structure
-        print(f"Rollup property content for item {result['id']}: {rollup_property}")
-
-        # Extract email addresses based on the rollup's structure
+        # Extract the Emails field (rollup property)
+        rollup_property = properties.get("Emails", {}).get("rollup", {})
+        email_array = rollup_property.get("array", [])
         email_list = []
-        rollup_results = rollup_property.get("rollup", {}).get("array", [])
-        for item in rollup_results:
-            if item.get("type") == "text":
+
+        # Iterate over rollup results to extract email addresses
+        for item in email_array:
+            if "text" in item.get("type", ""):
                 email_list.append(item.get("text", {}).get("content", ""))
 
-        # Fetch subject line from "Email Subject Line"
-        subject = properties.get("Email Subject Line", {}).get("rich_text", [])
-        subject_text = "".join([s.get("text", {}).get("content", "") for s in subject])
-
-        # Debugging: Print fetched values
-        print(f"Processing item {result['id']}")
-        print(f"Emails: {email_list}")
-        print(f"Subject: {subject_text}")
+        # Extract the Email Subject Line field
+        subject_raw = properties.get("Email Subject Line", {}).get("rich_text", [])
+        subject = "".join([s.get("text", {}).get("content", "") for s in subject_raw])
 
         # Generate the mailto link
-        if email_list and subject_text:
+        if email_list and subject:
             email_string = ",".join(email_list)
-            encoded_subject = urllib.parse.quote(subject_text)
+            encoded_subject = urllib.parse.quote(subject)
             mailto_link = f"mailto:{email_string}?subject={encoded_subject}"
-            print(f"Generated mailto link: {mailto_link}")
+
+            # Debug: Print generated mailto link
+            print(f"Generated mailto link for {result['id']}: {mailto_link}")
+
+            # Update the database with the generated mailto link
             update_database_item(result["id"], mailto_link)
         else:
-            print(f"Skipping item {result['id']} due to missing data.")
+            print(f"Skipping item {result['id']} due to missing emails or subject.")
 
 if __name__ == "__main__":
     try:
