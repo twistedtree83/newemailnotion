@@ -52,14 +52,20 @@ def process_emails():
         print(f"Properties for item {result['id']}: {properties}")
 
         # Extract the Emails field (rollup property)
-        rollup_property = properties.get("Emails", {}).get("rollup", {})
-        email_array = rollup_property.get("array", [])
-        email_list = []
+        rollup_property = properties.get("Emails", {})
 
-        # Iterate over rollup results to extract email addresses
-        for item in email_array:
-            if "text" in item.get("type", ""):
-                email_list.append(item.get("text", {}).get("content", ""))
+        # Debug: Print raw rollup data
+        print(f"Raw rollup data for item {result['id']}: {rollup_property}")
+
+        # Handle rollup array type
+        email_list = []
+        if rollup_property.get("type") == "array":
+            email_array = rollup_property.get("array", [])
+            email_list = [
+                item.get("text", {}).get("content", "") 
+                for item in email_array 
+                if item.get("type") == "text"
+            ]
 
         # Debug: Print extracted email list
         print(f"Extracted emails for item {result['id']}: {email_list}")
