@@ -36,12 +36,7 @@ def update_database_item(item_id, mailto_link):
     data = {
         "properties": {
             "Email Link": {  # Ensure this matches the "Email Link" property in Notion
-                "rich_text": [{
-                    "type": "text",
-                    "text": {
-                        "content": mailto_link
-                    }
-                }]
+                "url": mailto_link
             }
         }
     }
