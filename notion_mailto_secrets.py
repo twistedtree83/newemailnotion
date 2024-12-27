@@ -31,7 +31,7 @@ def update_database_item(item_id, mailto_link):
     }
     data = {
         "properties": {
-            "Email Link": {  # Ensure this matches the "Email Link" property in Notion
+            "Email Link": {
                 "url": mailto_link
             }
         }
@@ -43,7 +43,6 @@ def process_emails():
     """
     Processes the emails and subject from the Notion database,
     generates mailto links, and updates the database.
-    Includes detailed debugging print statements.
     """
     data = get_database_items()
     for result in data.get("results", []):
@@ -55,7 +54,7 @@ def process_emails():
         rollup_property = properties.get("Emails", {})
         print(f"Raw rollup data for item {item_id}: {rollup_property}")
 
-        email_list = []  # Initialize email_list outside the if condition
+        email_list = []
         if rollup_property.get("type") == "rollup":
             rollup_array = rollup_property.get("rollup", {}).get("array", [])
             print(f"Rollup array for item {item_id}: {rollup_array}")
@@ -64,7 +63,7 @@ def process_emails():
                 if item.get("type") == "email":
                     email = item.get("email", "")
                     if email:
-                        email_list.append(email)  # Add email to the list
+                        email_list.append(email)
 
         print(f"Extracted emails for item {item_id}: {email_list}")
 
@@ -72,6 +71,7 @@ def process_emails():
         subject = "".join([s.get("plain_text", "") for s in subject_raw])
         print(f"Subject for item {item_id}: {subject}")
 
+        # Generate and update the mailto link if both emails and subject are present
         if email_list and subject:
             email_string = ",".join(email_list)
             encoded_subject = urllib.parse.quote(subject)
