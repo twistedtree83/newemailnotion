@@ -61,6 +61,9 @@ def process_emails():
             if "text" in item.get("type", ""):
                 email_list.append(item.get("text", {}).get("content", ""))
 
+        # Debug: Print extracted email list
+        print(f"Extracted emails for item {result['id']}: {email_list}")
+
         # Extract the Email Subject Line field
         subject_raw = properties.get("Email Subject Line", {}).get("rich_text", [])
         subject = "".join([s.get("text", {}).get("content", "") for s in subject_raw])
