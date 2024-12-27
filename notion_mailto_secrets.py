@@ -52,6 +52,9 @@ def process_emails():
     for result in data.get("results", []):
         properties = result.get("properties", {})
 
+        # Debug: Print all properties of the current item
+        print(f"Properties for item {result['id']}: {properties}")
+
         # Fetch email addresses from the "Emails" field
         emails = properties.get("Emails", {}).get("rich_text", [])
         email_list = [email["text"]["content"] for email in emails]
