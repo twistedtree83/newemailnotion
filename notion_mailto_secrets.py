@@ -75,6 +75,9 @@ def process_emails():
         subject_raw = properties.get("Email Subject Line", {}).get("rich_text", [])
         subject = "".join([s.get("text", {}).get("content", "") for s in subject_raw])
 
+        # Debug: Print the extracted subject line
+        print(f"Subject for item {result['id']}: {subject}")
+
         # Generate the mailto link
         if email_list and subject:
             email_string = ",".join(email_list)
